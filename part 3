@@ -17,15 +17,15 @@ def configure_interfaces(connection, loopback_ip, interface_ip):
     # Configure the loopback interface 
     loopback_commands = [
         'interface loopback1',  
-        f'ip address {loopback_ip} 255.255.255.255',
+        f'ip address {loopback_ip} 1.1.1.1 255.255.255.255',
         'no shutdown'
     ]
     connection.send_config_set(loopback_commands)
 
-    # Configure another interface (Ethernet or GigabitEthernet)
+    # Configure another interface (GigabitEthernet)
     interface_commands = [
-        'interface gigabitEthernet 0/0',  # Adjust to correct interface name as needed
-        f'ip address {interface_ip} 255.255.255.0',
+        'interface gigabitEthernet2',  
+        f'ip address {interface_ip} 172.16.1.12 255.255.255.0',
         'no shutdown'
     ]
     connection.send_config_set(interface_commands)
@@ -34,8 +34,8 @@ def configure_interfaces(connection, loopback_ip, interface_ip):
 def configure_ospf(connection, loopback_ip, interface_ip):
     ospf_commands = [
         'router ospf 1',  # OSPF process ID 1
-        f'network {loopback_ip} 0.0.0.0 area 0',  # Advertise the loopback network
-        f'network {interface_ip[:-3]}0 0.0.0.255 area 0'  # Advertise the interface network (removes last 3 digits to make it a network address)
+        f'network {loopback_ip} 1.1.1.1 area 1',  # Advertise the loopback network
+        f'network {interface_ip[:-3]}1 1.1.1.255 area 1'  # Advertise the interface network (removes last 3 digits to make it a network address)
     ]
     connection.send_config_set(ospf_commands)
 
@@ -84,8 +84,8 @@ def main(loopback_ip, interface_ip):
 # Input dynamic IPs and loopback configurations
 if __name__ == '__main__':
     # Prompt user for loopback and interface IPs
-    loopback_ip = input("Enter the IP address for the loopback interface (e.g., 10.0.0.1): ")
-    interface_ip = input("Enter the IP address for the physical interface (e.g., 192.168.1.1): ")
+    loopback_ip = input("Enter the IP address for the loopback interface (e.g., 1.1.1.1): ")
+    interface_ip = input("Enter the IP address for the physical interface (e.g., 172.16.1.12): ")
 
     # Call the main function with the provided IPs
     main(loopback_ip, interface_ip)
