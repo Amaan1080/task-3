@@ -14,9 +14,9 @@ connection = ConnectHandler(**csr_device)
 
 # Function to configure the loopback and another interface
 def configure_interfaces(connection, loopback_ip, interface_ip):
-    # Configure the loopback interface (changed from loopback0 to loopback1)
+    # Configure the loopback interface 
     loopback_commands = [
-        'interface loopback1',  # Change loopback0 to loopback1
+        'interface loopback1',  
         f'ip address {loopback_ip} 255.255.255.255',
         'no shutdown'
     ]
