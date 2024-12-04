@@ -1,0 +1,28 @@
+from netmiko import ConnectHandler
+import difflib
+
+# Define the device connection details
+csr_device = {
+    'device_type': 'cisco_ios', # CSR1000v runs Cisco IOS-XE
+    'host': '192.168.56.101', # IP address of the CSR1000v router
+    'username': 'cisco', # Username for SSH login
+    'password': 'cisco123!' # Password for SSH login
+}
+
+# Establish an SSH connection
+with ConnectHandler(**csr_device) as connection:
+    # Configure the hostname, loopback, GigabitEthernet0/0/1, and OSPF
+    commands = [
+        'hostname NewHostname', # Change the hostname
+        'interface Loopback0',
+        'ip address 10.10.10.1 255.255.255.255', # New loopback IP
+        'interface GigabitEthernet0/0/1',
+        'ip address 172.16.1.2 255.255.255.252', # New IP for the interface
+        'router ospf 1',
+        'network 10.0.0.0 0.0.0.0 area 0', # Advertise Loopback0 network
+        'network 172.16.1.0 0.0.0.3 area 0' # Advertise GigabitEthernet0/0/1 network
+    ]
+
+    output = connection.send_config_set(commands)
+
+    # ... (rest of the code for running config, startup config, diff, etc.)
