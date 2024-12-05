@@ -1,0 +1,37 @@
+from netmiko import ConnectHandler, NetMikoAuthenticationException, NetMikoTimeoutException
+
+def configure_device(device_dict):
+    try:
+        with ConnectHandler(**device_dict) as connection:
+            commands = [
+                'hostname NewHostname',
+                'interface Loopback0',
+                'ip address 10.10.10.1 255.255.255.255',
+                'interface GigabitEthernet0/0/1',
+                'ip address 172.16.1.2 255.255.255.252',
+                'router ospf 1',
+                'network 10.0.0.0 0.0.0.0 area 0',
+                'network 172.16.1.0 0.0.0.3 area 0'
+            ]
+
+            output = connection.send_config_set(commands)
+            print(output)
+
+            # Optionally, save the running configuration to startup configuration
+            connection.send_command("write memory")
+
+    except (NetMikoAuthenticationException, NetMikoTimeoutException) as e:
+        print(f"Connection failed: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Define device credentials
+csr_device = {
+    'device_type': 'cisco_ios',
+    'host': '192.168.56.101',
+    'username': 'cisco',
+    'password': 'cisco123!'
+}
+
+# Call the configuration function
+configure_device(csr_device)
