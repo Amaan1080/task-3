@@ -1,0 +1,92 @@
+from netmiko import ConnectHandler
+import difflib
+NetMikoAuthenticationException, NetMikoTimeoutException
+  
+# Define the device connection details
+csr_device = {
+    'device_type': 'cisco_ios',  # CSR1000v runs Cisco IOS-XE
+    'host': '192.168.56.101',  # IP address of the CSR1000v router
+    'username': 'cisco',  # Username for SSH login
+    'password': 'cisco123!'  # Password for SSH login
+}
+
+# Establish an SSH connection
+connection = ConnectHandler(**csr_device, timeout=60) # Increased timeout to 60 seconds
+
+# Function to configure the loopback and another interface
+def configure_interfaces(connection, loopback_ip, interface_ip):
+    # Configure the loopback interface 
+    loopback_commands = [
+        'interface loopback1',  
+        f'ip address {loopback_ip} 1.1.1.1 255.255.255.255',
+        'no shutdown'
+    ]
+    connection.send_config_set(loopback_commands)
+
+    # Configure another interface (GigabitEthernet)
+    interface_commands = [
+        'interface gigabitEthernet2',  
+        f'ip address {interface_ip} 172.16.1.12 255.255.255.0',
+        'no shutdown'
+    ]
+    connection.send_config_set(interface_commands)
+
+# Function to configure OSPF routing protocol
+def configure_ospf(connection, loopback_ip, interface_ip):
+    ospf_commands = [
+        'router ospf 1',  # OSPF process ID 1
+        f'network {loopback_ip} 1.1.1.1 area 1',  # Advertise the loopback network
+        f'network {interface_ip[:-3]}1 1.1.1.255 area 1'  # Advertise the interface network (removes last 3 digits to make it a network address)
+    ]
+    connection.send_config_set(ospf_commands)
+
+# Main configuration routine
+def main(loopback_ip, interface_ip):
+    # Change hostname and then output the command
+    commands = [f'hostname {"Ali"}']
+    output = connection.send_config_set(commands)
+
+    # Configure the interfaces
+    configure_interfaces(connection, loopback_ip, interface_ip)
+
+    # Configure OSPF routing protocol
+    configure_ospf(connection, loopback_ip, interface_ip)
+
+    # Run the 'show ip interface brief' command and store the output
+    running_config = connection.send_command('show running-config')
+    startup_config = connection.send_command('show startup-config')
+
+    # Print the output to files
+    with open('running_config.txt', 'w') as run_file:
+        run_file.write(running_config)
+    with open('startup_config.txt', 'w') as start_file:
+        start_file.write(startup_config)
+
+    # Close the connection
+    connection.disconnect()
+
+    # Use difflib to compare the two configurations
+    diff = difflib.unified_diff(
+        running_config.splitlines(),  # List of lines from the running config
+        startup_config.splitlines(),  # List of lines from the startup config
+        fromfile='running_config.txt',  # Label for the first file in the diff output
+        tofile='startup_config.txt',     # Label for the second file in the diff output
+        lineterm=''  # Use an empty string to avoid extra newlines in output
+    )
+
+    # Write the differences to a new file
+    with open('config_differences.txt', 'w') as diff_file:
+        for line in diff:  # Iterate through each line of the diff output
+            diff_file.write(line + '\n')  # Write each line to the differences file
+
+    # Notify that the differences have been written
+    print("Differences have been written to 'config_differences.txt'")
+
+# Input dynamic IPs and loopback configurations
+if __name__ == '__main__':
+    # Prompt user for loopback and interface IPs
+    loopback_ip = input("Enter the IP address for the loopback interface (e.g., 1.1.1.1): ")
+    interface_ip = input("Enter the IP address for the physical interface (e.g., 172.16.1.12): ")
+
+    # Call the main function with the provided IPs
+    main(loopback_ip, interface_ip)
