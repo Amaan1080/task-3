@@ -85,8 +85,8 @@ def main(loopback_ip, interface_ip):
 # Input dynamic IPs and loopback configurations
 if __name__ == '__main__':
     # Prompt user for loopback and interface IPs
-    loopback_ip = input("Enter the IP address for the loopback interface (e.g., 1.1.1.1): ")
-    interface_ip = input("Enter the IP address for the physical interface (e.g., 172.16.1.12): ")
+    loopback_ip = input("Enter the IP address for the loopback interface (e.g., 1.1.1.1): 10.10.10.1 ")
+    interface_ip = input("Enter the IP address for the physical interface (e.g., 172.16.1.12): 172.16.1.15 ")
 
     # Call the main function with the provided IPs
     main(loopback_ip, interface_ip)
