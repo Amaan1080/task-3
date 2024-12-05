@@ -13,7 +13,7 @@ csr_device = {
 with ConnectHandler(**csr_device) as connection:
     # Configure the hostname, loopback, GigabitEthernet0/0/1, and OSPF
     commands = [
-        'hostname NewHostname', # Change the hostname
+        'hostname Ali', # Change the hostname
         'interface Loopback0',
         'ip address 10.10.10.1 255.255.255.255', # New loopback IP
         'interface GigabitEthernet0/0/1',
