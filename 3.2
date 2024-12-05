@@ -2,16 +2,21 @@ from netmiko import ConnectHandler, NetMikoAuthenticationException, NetMikoTimeo
 
 def configure_device(device_dict):
     try:
-        with ConnectHandler(**device_dict) as connection:
+        with ConnectHandler(**device_dict, timeout=60) as connection:
             commands = [
-                'hostname NewHostname',
-                'interface Loopback0',
-                'ip address 10.10.10.1 255.255.255.255',
-                'interface GigabitEthernet0/0/1',
-                'ip address 172.16.1.2 255.255.255.252',
+                'enable', # Enter privileged mode
+                'configure terminal', # Enter global configuration mode
+                'hostname Ali',
+                'interface Loopback1',
+                'ip address 1.1.1.1 255.255.255.255',
+                'no shutdown',
+                'interface GigabitEthernet2',
+                'ip address 172.16.1.12 255.255.255.0',
+                'no shutdown',
                 'router ospf 1',
-                'network 10.0.0.0 0.0.0.0 area 0',
-                'network 172.16.1.0 0.0.0.3 area 0'
+                'network 1.1.1.1 0.0.0.0 area 1',
+                'network 172.16.1.0 0.0.0.255 area 1',
+                'end' # Exit global configuration mode
             ]
 
             output = connection.send_config_set(commands)
